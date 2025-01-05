@@ -20,6 +20,7 @@ export interface User {
   telephone?: string;
   createTime?: string;
   updateTime?: string;
+  role?: string;
 }
 
 // 课程

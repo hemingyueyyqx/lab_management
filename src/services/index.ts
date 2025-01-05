@@ -51,7 +51,7 @@ export class CommonService {
         break;
       case LABADMIN:
         console.log("实验室管理员嘛？");
-        path = "/teacher";
+        path = "/labadmin";
         break;
     }
     router.push(path);

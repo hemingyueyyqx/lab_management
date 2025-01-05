@@ -57,6 +57,8 @@ const numberToChinese = (n: number, identifier?: string) => {
   return identifier === "week" && (n === 0 || n === 7) ? "日" : chnArr[n];
 };
 
+let chooseSection = ref();
+let chooseDay = ref();
 // 获取课程数据并整理
 const fetchData = async () => {
   try {
@@ -111,6 +113,8 @@ const dialogVisible = ref(false);
 const currentCellData = ref<any[]>([]);
 let freeWeeks = ref<number[]>([]);
 const showDialog = (weekSection: number, weekOfDay: number) => {
+  chooseDay.value = weekOfDay;
+  chooseSection.value = weekSection;
   const cellData = getCellData(weekSection, weekOfDay);
   const occupiedWeeks = cellData.map((course: any) => course.week);
   const allWeeks = Array.from({ length: 19 }, (_, i) => i + 1);
@@ -291,8 +295,8 @@ onMounted(() => {
                     id: '0',
                     name: selectedAppointmentType,
                   }),
-                  dayofweek: currentCellData[0].dayofweek,
-                  section: currentCellData[0].section,
+                  dayofweek: chooseDay,
+                  section: chooseSection,
                   // section: currentCellData[0].section,
                   // dayofweek: currentCellData[0].dayofweek,
                   labId: (+labSelected - 900).toString(),
@@ -348,10 +352,10 @@ td {
 }
 .course-box {
   display: inline-block;
-  background: blue;
+  background: #d9ecff;
   width: 60px;
   height: 100px;
-  color: white;
+  color: black;
   border-radius: 15px;
   padding: 8px;
   text-align: center;
@@ -361,7 +365,7 @@ td {
 }
 .course-box-background {
   text-align: center;
-  background: grey;
+  background: rgb(241, 241, 241);
   width: 75px;
   height: 140px;
   padding: 2px;
