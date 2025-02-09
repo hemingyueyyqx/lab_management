@@ -81,34 +81,13 @@ const router = createRouter({
         },
       ],
     },
+    //"/:pathMatch(.*)*" 可以匹配任何未被其他路由规则匹配到的路径。例如，像 /abc、/abc/def、/123/xyz 等任何路径，只要没有在其他路由规则中被定义，都会被这个规则捕获。
     {
       path: "/:pathMatch(.*)*",
       redirect: "/login",
     },
-    //一个一个的路由规则
-    // {
-    //   name: "home",
-    //   path: "/home",
-    //   component: () => import("@/views/main/home.vue"),
-    //   // children: [{ path: "test", component: () => import("@/pages/Test.vue") }],
-    // },
-    // {
-    //   name: "login",
-    //   path: "/login",
-    //   component: () => import("@/views/login/login.vue"),
-    //   // children: [{ path: "test", component: () => import("@/pages/Test.vue") }],
-    // },
 
-    // {
-    //   name: "timeTable",
-    //   path: "/timetable3",
-    //   component: () => import("@/views/main/timetable3.vue"),
-    //   // children: [{ path: "test", component: () => import("@/pages/Test.vue") }],
-    // },
-    // {
-    //   path: "/",
-    //   redirect: "/login",
-    // },
+   
   ],
 });
 
@@ -129,6 +108,7 @@ router.beforeEach((to) => {
   console.log("角色为：" + role);
   if (role) {
     console.log("排除路径");
+    //如果路径是"/"就到该角色指定的页面
     if (to.path == "/") {
       if (role == consty.TEACHER) {
         return "/teacher/teacherhome";

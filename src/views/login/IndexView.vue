@@ -17,6 +17,7 @@
           </el-form-item>
 
           <el-form-item prop="password" class="input-container">
+            <!-- show-password 是一个属性，它的作用是为输入框添加一个 “显示密码” 的切换功能 -->
             <el-input
               placeholder="密码"
               v-model="form.password"
@@ -71,7 +72,7 @@ import { fi } from "element-plus/es/locales.mjs";
 const isLogin = ref(false);
 const ruleFormRef = ref<FormInstance>();
 const form = ref({
-  account: "2333333333",
+  account: "2022222979",
   password: "123456",
 });
 
@@ -110,8 +111,14 @@ const changeType = () => {
 };
 
 //登录按钮校验
+//接收一个参数 formEl，其类型为 FormInstance | undefined，表示表单实例对象，这个参数可以是 FormInstance 类型（即表单实例），也可以是 undefined（表示没有传入表单实例）
 const handleLogin = async (formEl: FormInstance | undefined) => {
-  if (!formEl) return;
+  if (!formEl) return;//如果 formEl 不存在，函数将直接返回，不执行后续的校验和登录逻辑。
+  //formEl.validate 是 Element UI（或 ElementPlus）表单组件提供的一个方法，用于对表单进行校验。
+// 它接收一个回调函数作为参数，该回调函数会在表单校验完成后被调用。
+// 回调函数接收两个参数：
+// valid：是一个布尔值，表示表单是否校验通过。如果所有表单项都满足校验规则，valid 为 true；否则为 false。
+// fields：是一个对象，包含了所有校验不通过的表单项及其错误信息。
   await formEl.validate(async (valid, fields) => {
     if (valid) {
       const res = await CommonService.loginService({

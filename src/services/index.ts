@@ -22,9 +22,9 @@ export class CommonService {
     const token = resp.headers.token;
     const role = resp.headers.role;
     const { id, name } = us;
-    console.log(",,,," + role);
+    console.log("role" , role);
     const message = resp.data.message;
-    //console.log("mmmmmmm" + message);
+    //console.log("响应信息", message);
     if (!us || !token || !role) {
       //ElMessage.error('登录失败！' + message)
       throw "登录错误";
@@ -36,7 +36,7 @@ export class CommonService {
     ElMessage.success("登录成功！");
     // 账号密码一样就重置密码;
     if (user.account === user.password) {
-      console.log("欸？");
+      console.log("需要重置密码");
       router.push("/settings");
       return;
     }

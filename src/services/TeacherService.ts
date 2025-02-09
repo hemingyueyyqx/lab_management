@@ -80,6 +80,7 @@ export class TeacherService {
       throw error;
     }
   }
+  //添加预约记录
   static addAppointmentService = async (appointment: Appointment) => {
     try {
       const url = `teacher/appointment`;
@@ -92,6 +93,7 @@ export class TeacherService {
       console.log("请求添加预约记录失败，错误信息:", error);
     }
   };
+  //删除所有预约记录
   static deleteAppointment = async (courseid: any) => {
     try {
       const url = `teacher/deleteappointment/${courseid}`;
@@ -112,5 +114,18 @@ export class TeacherService {
     console.log(semester);
     const data = await useGet(`teacher/allteacherstable`);
     return data as any;
+  }
+  //添加课程
+  static addCourse = async (course: Course) => {
+    try {
+      const url = `teacher/addcourse`;
+      console.log("即将发起请求的URL:", url);
+      const resp = await axios.post(url, course);
+      if (resp.data.code < 300) {
+        ElMessage.success("课程添加成功！");
+      }
+    } catch (error) {
+      console.log("课程添加失败，错误信息:", error);
+    }
   };
 }
