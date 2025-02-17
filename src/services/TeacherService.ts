@@ -5,7 +5,7 @@ import { useCourseCountStore } from "@/stores/Courses";
 import { useLabsStore } from "@/stores/LabsStore";
 import { useLabTableStore } from "@/stores/LabTableStore";
 import { useCoursesTableCountStore } from "@/stores/CoursesTableStore";
-import {useAllCoursesTableStore} from "@/stores/AllCoursesTableStore";
+import { useAllCoursesTableStore } from "@/stores/AllCoursesTableStore";
 import { type Appointment, type Course } from "@/types/index";
 import { StoreCache, ELLoading, StoreClear } from "./Decorators";
 import { useCalendarStore } from "@/stores/CalendarStore";
@@ -107,7 +107,7 @@ export class TeacherService {
     }
   };
   //如果角色是老师，则可以看到本学期所有老师的所有课程(课表)
-  @StoreCache(allCoursesTableStore.allCoursesTable)
+  @StoreCache(allCoursesTableStore.allCoursesTable, true)
   @ELLoading()
   static async listAllCourses() {
     const semester = useCalendarStore().getSemester();
@@ -121,11 +121,40 @@ export class TeacherService {
       const url = `teacher/addcourse`;
       console.log("即将发起请求的URL:", url);
       const resp = await axios.post(url, course);
+      console.log(resp);
+
       if (resp.data.code < 300) {
+        console.log("课程添加成功！");
         ElMessage.success("课程添加成功！");
       }
     } catch (error) {
       console.log("课程添加失败，错误信息:", error);
+    }
+  };
+  //删除课程
+  static deleteCourse = async (courseId: any) => {
+    try {
+      const url = `teacher/course/${courseId}`;
+      console.log("即将发起请求的URL:", url);
+      const resp = await useDelete(url);
+      if (resp.code < 300) {
+        ElMessage.success("删除成功！");
+      }
+    } catch (error) {
+      console.log("删除课程失败，错误信息:", error);
+    }
+  };
+  //删多门课程
+  static deleteCourses = async (courseIds: any) => {
+    try {
+      const url = `teacher/courses/${courseIds}`;
+      console.log("即将发起请求的URL:", url);
+      const resp = await useDelete(url);
+      if (resp.code < 300) {
+        ElMessage.success("删除成功！");
+      }
+    } catch (error) {
+      console.log("删除课程失败，错误信息:", error);
     }
   };
 }

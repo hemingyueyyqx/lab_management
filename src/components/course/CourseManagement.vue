@@ -2,8 +2,16 @@
 import { ref, type Ref } from "vue";
 import type { Course } from "@/types/index";
 import { TeacherService } from "@/services/TeacherService";
-import { ElDialog, ElCheckbox, ElCheckboxGroup } from "element-plus";
+import {
+  ElDialog,
+  ElCheckbox,
+  ElCheckboxGroup,
+  ElMessageBox,
+  ElMessage,
+} from "element-plus";
+import { useCalendarStore } from "@/stores/CalendarStore";
 
+const calendarStore = useCalendarStore();
 //课程信息数组
 let courses = ref();
 //是否处于加载状态
@@ -17,6 +25,7 @@ const form = ref<Course>({});
 //1、获取指定老师的所有课程信息
 async function fetchData() {
   try {
+    //loading.value = true;
     courses = await TeacherService.listCoursesService();
     console.log("**********");
     console.log(courses.value);
@@ -28,14 +37,16 @@ async function fetchData() {
 //调用1
 fetchData();
 //2、添加课程
-async function addCourse(course: Course) {
-  try {
-    await TeacherService.addCourse(course);
-    location.reload(); // 刷新页面
-  } catch (error) {
-    console.error("Error:", error);
-  }
-}
+// async function addCourse(course: Course) {
+//   try {
+//     console.log("即将向后端发送添加课程请求！");
+
+//     await TeacherService.addCourse(course);
+//     // location.reload(); // 刷新页面
+//   } catch (error) {
+//     console.error("Error:", error);
+//   }
+// }
 const selected = (data) => {
   console.log("selected", data);
 
@@ -48,9 +59,40 @@ const selected = (data) => {
   console.log("idArr:", idArr);
 };
 
-//删除
+//删除所选课程
 const del = () => {
   console.log("del:", idArr);
+   ElMessageBox.confirm(`确定要删除所选课程吗?`, "Warning", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+  })
+    .then(async () => {
+      console.log("删除多门课程");
+      await TeacherService.deleteCourses(idArr);
+      location.reload(); // 刷新页面
+      
+    })
+    .catch(() => {
+    });
+};
+//删除当前行的课程
+const deleteCourse = (row: any) => {
+  //弹提示框提示确定要删除当前课程吗
+  ElMessageBox.confirm(`确定要删除名称为${row.name}这门课程吗?`, "Warning", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+  })
+    .then(async () => {
+      console.log("删除课程");
+      console.log(row);
+      await TeacherService.deleteCourse(row.id);
+      location.reload(); // 刷新页面
+      
+    })
+    .catch(() => {
+    });
 };
 //新增
 const add = () => {
@@ -62,12 +104,20 @@ const add = () => {
 const edit = (index: any, row: any) => {
   console.log("index:", index, "row:", row);
 };
-//添加课程提交按钮
-const submit = () => {
+// 添加课程提交按钮
+const submit = async () => {
+  const semester = calendarStore.getSemester();
+  console.log(semester);
+  form.value.semester = semester;
+  console.log("form的值是");
   console.log("form:", form.value);
-  addCourse(form.value);
-  addCourseOpen.value = false;
-  fetchData();
+  try {
+    await TeacherService.addCourse(form.value);
+    addCourseOpen.value = false;
+    location.reload(); // 刷新页面
+  } catch (error) {
+    console.error("添加课程失败:", error);
+  }
 };
 </script>
 
@@ -105,7 +155,9 @@ const submit = () => {
         >
           编辑
         </el-button>
-        <el-button size="small">删除</el-button>
+        <el-button size="small" @click="deleteCourse(scope.row)"
+          >删除</el-button
+        >
       </template>
     </el-table-column>
   </el-table>

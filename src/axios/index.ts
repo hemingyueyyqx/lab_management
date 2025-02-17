@@ -36,9 +36,9 @@ const parseObject = (data: any) => {
       parseObject(value);
     }
     //  首先检查 value 是否为字符串，并且该字符串包含 {" 或 [，这是 JSON 对象或数组的起始符号，以此来判断该字符串可能是一个 JSON 字符串。
-// 如果满足条件，使用 JSON.parse 方法尝试将该字符串解析为 js 对象，并将解析结果存储在 newValue 中。
-// 如果解析结果是一个对象，递归调用 parseObject 函数处理这个对象，并将处理结果赋值给原对象 data 中对应的键。
-// 使用 try...catch 块捕获解析过程中可能出现的错误，如果解析失败，不做任何处理。
+    // 如果满足条件，使用 JSON.parse 方法尝试将该字符串解析为 js 对象，并将解析结果存储在 newValue 中。
+    // 如果解析结果是一个对象，递归调用 parseObject 函数处理这个对象，并将处理结果赋值给原对象 data 中对应的键。
+    // 使用 try...catch 块捕获解析过程中可能出现的错误，如果解析失败，不做任何处理。
     if (
       typeof value == "string" &&
       (value.includes('{"') || value.includes("["))
@@ -66,8 +66,8 @@ axios.interceptors.response.use(
     }
 
     const data: ResultVO<{}> = resp.data;
-    console.log("resp.data",resp.data);
-    console.log("code",data.code);
+    console.log("resp.data", resp.data);
+    console.log("code", data.code);
     if (data.code < 300) {
       // 将resp.data转成对象
       // parseObject(resp.data);
@@ -86,7 +86,7 @@ axios.interceptors.response.use(
   },
   // 全局处理异常信息。即，http状态码不是200
   (error) => {
-     ElMessage.error("error!!!")
+    ElMessage.error("error!!!");
     return Promise.reject(error.message);
   }
 );
@@ -105,7 +105,7 @@ export const usePost = async <T>(url: string, data: unknown) => {
 // 在大多数实际应用场景中，PUT 请求是需要携带请求体的。因为 PUT 请求的核心用途是更新资源，而更新操作通常需要提供新的数据来替换或修改目标资源的现有内容。
 // 示例场景：假设你有一个用户信息管理系统，用户的信息存储在服务器的某个资源路径下。当用户需要更新自己的姓名、邮箱等信息时，就可以使用 PUT 请求将新的用户信息作为请求体发送到服务器。
 export const usePut = async <T>(url: string, data: unknown) => {
-  const resp = await axios.put<ResultVO<T>>(url,data);
+  const resp = await axios.put<ResultVO<T>>(url, data);
   return resp.data.data;
 };
 
@@ -116,7 +116,7 @@ export const usePatch = async <T>(url: string, data: unknown) => {
 //在 RESTful 架构风格里，DELETE 请求主要用于删除指定的资源，一般通过请求的 URL 来标识要删除的资源，所以多数场景下不需要请求体。例如，要删除用户 ID 为 123 的用户信息，请求的 URL 可能设计为 https://example.com/api/users/123，服务器根据这个 URL 就能明确要删除的资源，不需要额外的请求体数据。
 export const useDelete = async <T>(url: string) => {
   const resp = await axios.delete<ResultVO<T>>(url);
-  return resp.data.data;
+  return resp.data;
 };
 
 export default axios;
