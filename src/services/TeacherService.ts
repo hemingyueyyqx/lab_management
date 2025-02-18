@@ -139,8 +139,10 @@ export class TeacherService {
       const resp = await useDelete(url);
       if (resp.code < 300) {
         ElMessage.success("删除成功！");
+        return resp.code;
       }
     } catch (error) {
+      ElMessage.error(`删除课程失败，${error}`);
       console.log("删除课程失败，错误信息:", error);
     }
   };
@@ -153,8 +155,23 @@ export class TeacherService {
       if (resp.code < 300) {
         ElMessage.success("删除成功！");
       }
+      return resp.code;
     } catch (error) {
+      ElMessage.error(`删除课程失败，${error}`);
       console.log("删除课程失败，错误信息:", error);
+    }
+  };
+  //修改课程
+  static updateCourse = async (course: Course) => {
+    try {
+      const url = `teacher/updatecourse`;
+      console.log("即将发起请求的URL:", url);
+      const resp = await axios.put(url, course);
+      if (resp.data.code < 300) {
+        ElMessage.success("修改成功！");
+      }
+    } catch (error) {
+      console.log("修改课程失败，错误信息:", error);
     }
   };
 }
