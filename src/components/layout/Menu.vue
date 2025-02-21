@@ -44,7 +44,7 @@ const menulist: MenuItem[] = [
   },
   {
     id: 6,
-    name: "当前预约",
+    name: "我的预约",
     index: "/teacher/currentappointment",
     icon: House,
   },
