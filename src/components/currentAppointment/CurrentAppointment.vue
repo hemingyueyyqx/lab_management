@@ -19,14 +19,22 @@ let appointments = ref([]);
 const loading = ref(true);
 //选中的复选框
 let idArr = [];
-//控制添加课程
-// const addCourseOpen = ref(false);
-//控制编辑弹窗
-// const editCourseOpen = ref(false);
-//添加课程表单
-// const form = ref<Course>({});
-//编辑课程表单
-// const editForm = ref<Course>({});
+// 控制删除模态框显示
+const deleteDialogVisible = ref(false);
+// 当前要删除的课程信息
+const currentCourse = ref<{
+  id: string;
+  labId: string;
+  name: string;
+  weeks: number[];
+}>({
+  id: "",
+  labId: "",
+  name: "",
+  weeks: [],
+});
+// 选中的周次
+const selectedWeeks = ref<number[]>([]);
 //1、获取指定老师的所有课程信息
 async function fetchData() {
   try {
@@ -77,13 +85,13 @@ const mergeCourses = (data: any[]) => {
   // 处理合并后的周次信息
   const mergedData = Array.from(mergedMap.values());
   mergedData.forEach((item) => {
-      const weeks = item.appointment.week
-    //将周次字符串按逗号分割成一个字符串数组
-          .split(",")
+    const weeks = item.appointment.week
+      //将周次字符串按逗号分割成一个字符串数组
+      .split(",")
       //对分割后的每个字符串元素去除首尾空格（trim()），然后转换为整数（parseInt()），最终得到一个整数数组，例如 [1, 2, 3, 6, 7]。
-          .map((week) => parseInt(week.trim()))
+      .map((week) => parseInt(week.trim()))
       //filter((week) => !isNaN(week))：过滤掉数组中不是有效数字的元素（isNaN() 用于判断一个值是否为 NaN），确保数组中只包含有效的周次数字
-          .filter((week) => !isNaN(week))
+      .filter((week) => !isNaN(week))
       //sort((a, b) => a - b)：对数组进行升序排序，保证周次是按从小到大的顺序排列
       .sort((a, b) => a - b);
 
@@ -121,7 +129,7 @@ const selected = (data) => {
   idArr = []; //重置
 
   data.forEach((value: any) => {
-    idArr.push(value.id);
+    idArr.push(value.course.id);
   });
 
   console.log("idArr:", idArr);
@@ -144,72 +152,78 @@ const del = () => {
     })
     .catch(() => {});
 };
-//删除当前行的课程
-const deleteCourse = (row: any) => {
-  //弹提示框提示确定要删除当前课程吗
-  ElMessageBox.confirm(`确定要删除名称为${row.name}这门课程吗?`, "Warning", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning",
-  })
-    .then(async () => {
-      console.log("删除课程");
-      console.log(row);
-      const code = await TeacherService.deleteCourse(row.id);
-      if (code < 300) {
-        location.reload(); // 刷新页面
-      }
-    })
-    .catch(() => {});
+// 打开删除模态框
+const openDeleteDialog = (row: any) => {
+  console.log("row:", row);
+  const weeks = row.appointment.week.split(", ").flatMap((range) => {
+    if (range.includes("-")) {
+      const [start, end] = range.split("-").map(Number);
+      return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+    }
+    return [Number(range)];
+  });
+  currentCourse.value = {
+    id: row.course.id,
+    labId: row.appointment.labId,
+    name: row.course.name,
+    weeks,
+  };
+  console.log("currentCourse:", currentCourse.value);
+
+  selectedWeeks.value = [];
+  deleteDialogVisible.value = true;
 };
+
+// 确认删除操作
+const confirmDelete = async () => {
+  console.log("要删除的课程 ID:", currentCourse.value.id);
+  console.log("选中的周次:", selectedWeeks.value);
+  try {
+    // 弹出确认对话框
+    await ElMessageBox.confirm(
+      `确定要删除课程${currentCourse.value.name}的所选预约周次吗?`,
+      "Warning",
+      {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      }
+    );
+
+    // 用户点击了确认，执行删除操作
+    const code = await TeacherService.deleteAppointmentByCourseId({
+      courseId: currentCourse.value.id,
+      labId: currentCourse.value.labId,
+      weeks: selectedWeeks.value,
+    });
+
+    if (code < 300) {
+      // 删除成功
+      ElMessage.success("删除成功");
+      deleteDialogVisible.value = false;
+      location.reload();
+    } else {
+      // 删除失败
+      throw new Error(`删除失败，状态码: ${code}`);
+    }
+  } catch (error) {
+    if (error === "cancel") {
+      // 用户点击了取消
+      console.log("用户取消了删除操作");
+    } else {
+      // 真正的删除失败
+      console.error("删除失败:", error);
+      ElMessage.error("删除失败");
+    }
+  }
+};
+
 //新增
 const add = () => {
   //弹出对话框
   console.log("预约课程");
   //   addCourseOpen.value = true;
 };
-//编辑
-// const edit = (index: any, row: any) => {
-//   console.log("index:", index, "row:", row);
-//   //执行 editForm.value = row 时，editForm.value 和 row 指向了同一个对象。所以，当你在编辑弹窗中修改 editForm 的属性时，courses 数组中对应的对象属性也会被修改。
-//   //解决方法
-//   editForm.value = cloneDeep(row);
-//   // 确保 editForm.type 是字符串类型
-//   if (typeof editForm.value.type === "number") {
-//     editForm.value.type = String(editForm.value.type);
-//   }
-//   //弹出对话框
-//   editCourseOpen.value = true;
-// };
-// 添加课程提交按钮
-// const submit = async () => {
-//   const semester = calendarStore.getSemester();
-//   console.log(semester);
-//   form.value.semester = semester;
-//   console.log("form的值是");
-//   console.log("form:", form.value);
-//   try {
-//     await TeacherService.addCourse(form.value);
-//     addCourseOpen.value = false;
-//     location.reload(); // 刷新页面
-//   } catch (error) {
-//     console.error("添加课程失败:", error);
-//   }
-// };
-//编辑提交按钮
-// const editSubmit = async () => {
-//   console.log("editForm的值是");
-//   console.log("editForm:", editForm.value);
-//   await TeacherService.updateCourse(editForm.value);
-//   editCourseOpen.value = false;
-//   editForm.value = {};
-//   location.reload(); // 刷新页面
-// };
-//编辑取消按钮
-// const editCancel = () => {
-//   editCourseOpen.value = false;
-//   editForm.value = {};
-// };
 </script>
 
 <template>
@@ -267,7 +281,11 @@ const add = () => {
           <el-icon><Edit /></el-icon>
           <span>修改</span>
         </el-button> -->
-        <el-button type="danger" size="small" @click="deleteCourse(scope.row)">
+        <el-button
+          type="danger"
+          size="small"
+          @click="openDeleteDialog(scope.row)"
+        >
           <el-icon><Delete /></el-icon>
           <span>删除</span>
         </el-button>
@@ -280,97 +298,34 @@ const add = () => {
       :page-size="5"
       :total="50"
     />
+    <!-- 删除模态框 -->
+    <el-dialog
+      v-model="deleteDialogVisible"
+      title="删除预约"
+      width="500"
+      @close="deleteDialogVisible = false"
+    >
+      <!---<template #content>-->
+      <p>课程名称: {{ currentCourse.name }}</p>
+      <p>请选择你要删除的周次：</p>
+      <el-checkbox-group v-model="selectedWeeks">
+        <el-checkbox
+          v-for="week in currentCourse.weeks"
+          :key="week"
+          :value="week"
+        >
+          第 {{ week }} 周
+        </el-checkbox>
+      </el-checkbox-group>
+      <!-- </template> -->
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="deleteDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="confirmDelete">确定</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
-  <!-- 添加课程模态框 -->
-  <!-- <el-dialog v-model="addCourseOpen" title="添加课程" width="500">
-    <el-form :model="form">
-      <el-form-item label="课程名称">
-        <el-input
-          v-model="form.name"
-          autocomplete="off"
-          placeholder="请输入课程名称"
-        />
-      </el-form-item>
-      <el-form-item label="实验学时">
-        <el-input
-          v-model="form.experimentHour"
-          autocomplete="off"
-          placeholder="请输入实验学时"
-        />
-      </el-form-item>
-      <el-form-item label="上课人数">
-        <el-input
-          v-model="form.quantity"
-          autocomplete="off"
-          placeholder="请输入上课人数"
-        />
-      </el-form-item>
-      <el-form-item label="课程班级">
-        <el-input
-          v-model="form.clazz"
-          autocomplete="off"
-          placeholder="请输入课程班级"
-        />
-      </el-form-item>
-      <el-form-item label="课程类型">
-        <el-select v-model="form.type" placeholder="请选择课程类型">
-          <el-option label="必修课" value="0" />
-          <el-option label="选修课" value="1" />
-        </el-select>
-      </el-form-item>
-    </el-form>
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="addCourseOpen = false">取消</el-button>
-        <el-button type="primary" @click="submit"> 确定 </el-button>
-      </div>
-    </template>
-  </el-dialog> -->
-  <!-- 编辑弹窗 -->
-  <!-- <el-dialog v-model="editCourseOpen" title="修改课程" width="500">
-    <el-form :model="editForm">
-      <el-form-item label="课程名称">
-        <el-input
-          v-model="editForm.name"
-          autocomplete="off"
-          placeholder="请输入课程名称"
-        />
-      </el-form-item>
-      <el-form-item label="实验学时">
-        <el-input
-          v-model="editForm.experimentHour"
-          autocomplete="off"
-          placeholder="请输入实验学时"
-        />
-      </el-form-item>
-      <el-form-item label="上课人数">
-        <el-input
-          v-model="editForm.quantity"
-          autocomplete="off"
-          placeholder="请输入上课人数"
-        />
-      </el-form-item>
-      <el-form-item label="课程班级">
-        <el-input
-          v-model="editForm.clazz"
-          autocomplete="off"
-          placeholder="请输入课程班级"
-        />
-      </el-form-item>
-      <el-form-item label="课程类型">
-        <el-select v-model="editForm.type" placeholder="请选择课程类型">
-          <el-option label="必修课" value="0" />
-          <el-option label="选修课" value="1" />
-        </el-select>
-      </el-form-item>
-    </el-form>
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="editCancel">取消</el-button>
-        <el-button type="primary" @click="editSubmit"> 确定 </el-button>
-      </div>
-    </template>
-  </el-dialog> -->
 </template>
 
 <style scoped>

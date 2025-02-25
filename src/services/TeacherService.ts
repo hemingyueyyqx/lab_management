@@ -174,4 +174,22 @@ export class TeacherService {
       console.log("修改课程失败，错误信息:", error);
     }
   };
+  //删除指定课程id,指定学期，指定周次的预约记录
+  static deleteAppointmentByCourseId = async (appointment:any) => {
+    try {
+      const semester = useCalendarStore().getSemester();
+      appointment = { semester, ...appointment };
+      console.log("appointment", appointment);
+      const url = `teacher/deleteappointment`;
+      console.log("即将发起请求的URL:", url);
+      const resp = await axios.post(url, appointment);
+      if (resp.data.code < 300) {
+        ElMessage.success("删除成功！");
+      }
+      return resp.data.code;
+    } catch (error) {
+      ElMessage.error(`删除预约记录失败，${error}`);
+      console.log("删除预约记录失败，错误信息:", error);
+    }
+  };
 }
