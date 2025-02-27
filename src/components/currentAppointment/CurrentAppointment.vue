@@ -11,6 +11,9 @@ import {
   ElMessage,
 } from "element-plus";
 import { useCalendarStore } from "@/stores/CalendarStore";
+//引入路由实例
+import { useRouter } from "vue-router";
+const router = useRouter();
 
 const calendarStore = useCalendarStore();
 //预约信息数组
@@ -61,41 +64,34 @@ async function fetchData() {
 //调用1
 fetchData();
 // 合并课程信息的函数
-const mergeCourses = (data: any[]) => {
+const mergeCourses = (data) => {
   const mergedMap = new Map();
   data.forEach((item) => {
-    //这行代码使用模板字符串生成一个唯一的键
     const key = `${item.course.name}-${item.appointment.labName}-${item.appointment.dayofweek}-${item.appointment.section}`;
-    //mergedMap.has(key) 用于检查 mergedMap 中是否已经存在当前生成的键。如果存在，说明之前已经处理过相同课程名称、星期和节次的课程信息。
     if (mergedMap.has(key)) {
-      //mergedMap.get(key) 用于获取该键对应的值，也就是之前存储的合并后的课程对象，将其赋值给 existingItem。
       const existingItem = mergedMap.get(key);
-      //   console.log("existingItem:", existingItem);
-
-      // 合并周次信息，这里简单地将周次拼接起来，你可以根据实际需求修改
-      existingItem.appointment.week += `, ${item.appointment.week}`;
+      // 这里也需要确保拼接时是字符串类型
+      existingItem.appointment.week += `, ${String(item.appointment.week)}`;
     } else {
-      //使用扩展运算符 ... 来创建 item 的副本，避免后续修改影响原始数据。
       mergedMap.set(key, { ...item });
     }
   });
-  //mergedMap.values() 返回 mergedMap 中所有的值的迭代器。
-  //Array.from() 方法将这个迭代器转换为一个数组，最终返回合并后的课程信息数组。
-  //   return Array.from(mergedMap.values());
-  // 处理合并后的周次信息
+
   const mergedData = Array.from(mergedMap.values());
   mergedData.forEach((item) => {
-    const weeks = item.appointment.week
-      //将周次字符串按逗号分割成一个字符串数组
+    // 先将其转换为字符串
+    const weekStr = String(item.appointment.week);
+    // 检查是否有逗号，如果没有逗号说明只有一个周次，不需要处理
+    if (!weekStr.includes(",")) {
+      return;
+    }
+    const weeks = weekStr
       .split(",")
-      //对分割后的每个字符串元素去除首尾空格（trim()），然后转换为整数（parseInt()），最终得到一个整数数组，例如 [1, 2, 3, 6, 7]。
       .map((week) => parseInt(week.trim()))
-      //filter((week) => !isNaN(week))：过滤掉数组中不是有效数字的元素（isNaN() 用于判断一个值是否为 NaN），确保数组中只包含有效的周次数字
       .filter((week) => !isNaN(week))
-      //sort((a, b) => a - b)：对数组进行升序排序，保证周次是按从小到大的顺序排列
       .sort((a, b) => a - b);
 
-    const ranges: string[] = [];
+    const ranges = [];
     let start = weeks[0];
     let end = weeks[0];
 
@@ -117,7 +113,6 @@ const mergeCourses = (data: any[]) => {
     } else {
       ranges.push(`${start}-${end}`);
     }
-    //使用 join(", ") 方法将 ranges 数组中的元素用逗号和空格连接成一个字符串，例如 ["1-3", "6-7"] 会变成 "1-3, 6-7"。
     item.appointment.week = ranges.join(", ");
   });
 
@@ -138,14 +133,14 @@ const selected = (data) => {
 //删除所选课程
 const del = () => {
   console.log("del:", idArr);
-  ElMessageBox.confirm(`确定要删除所选课程吗?`, "Warning", {
+  ElMessageBox.confirm(`确定要删除所选课程的全部预约记录吗?`, "Warning", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning",
   })
     .then(async () => {
-      console.log("删除多门课程");
-      const code = await TeacherService.deleteCourses(idArr);
+      console.log("删除多门课程全部预约记录");
+      const code = await TeacherService.deleteAppointment(idArr);
       if (code < 300) {
         location.reload(); // 刷新页面
       }
@@ -219,19 +214,35 @@ const confirmDelete = async () => {
 };
 
 //新增
-const add = () => {
+const add = (type: Number) => {
   //弹出对话框
   console.log("预约课程");
-  //   addCourseOpen.value = true;
+  if (type == 1) {
+    router.push("/teacher/courseappointment");
+  } else {
+    router.push("/teacher/temappointment");
+  }
 };
 </script>
 
 <template>
   <!-- <h3>按钮</h3> -->
-  <el-button type="primary" @click="add">
+  <!-- <el-button type="primary" @click="add">
     <el-icon><Plus /></el-icon>
     <span>预约</span>
-  </el-button>
+  </el-button> -->
+  <el-dropdown style="margin-right: 10px">
+    <el-button type="primary" @click="">
+      <el-icon><Plus /></el-icon>
+      <span>预约</span>
+    </el-button>
+    <template #dropdown>
+      <el-dropdown-menu>
+        <el-dropdown-item @click="add(1)">课程预约</el-dropdown-item>
+        <el-dropdown-item @click="add(2)">临时预约</el-dropdown-item>
+      </el-dropdown-menu>
+    </template>
+  </el-dropdown>
   <el-button type="danger" @click="del">
     <el-icon><Delete /></el-icon>
     <span>删除</span>

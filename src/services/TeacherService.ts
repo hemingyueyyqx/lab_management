@@ -94,14 +94,16 @@ export class TeacherService {
     }
   };
   //删除所有预约记录
-  static deleteAppointment = async (courseid: any) => {
+  static deleteAppointment = async (data: any) => {
     try {
-      const url = `teacher/deleteappointment/${courseid}`;
+      const semester = useCalendarStore().getSemester();
+      const url = `teacher/deleteappointments/${semester}`;
       console.log("即将发起请求的URL:", url);
-      const resp = await axios.post(url, null);
+      const resp = await axios.post(url, data);
       if (resp.data.code < 300) {
         ElMessage.success("删除成功！");
       }
+      return resp.data.code;
     } catch (error) {
       console.log("删除预约记录失败，错误信息:", error);
     }
@@ -190,6 +192,17 @@ export class TeacherService {
     } catch (error) {
       ElMessage.error(`删除预约记录失败，${error}`);
       console.log("删除预约记录失败，错误信息:", error);
+    }
+  };
+  //查看所有公告
+  static listAllAnnouncements = async () => {
+    try {
+      const url = `labmanager/news`;
+      console.log("即将发起请求的URL:", url);
+      const resp = await useGet(url);
+      return resp as any;
+    } catch (error) {
+      console.log("请求所有公告失败，错误信息:", error);
     }
   };
 }
