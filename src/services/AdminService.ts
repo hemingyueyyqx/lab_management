@@ -1,42 +1,48 @@
-import { useDelete, useGet, usePost, usePatch, usePut } from "@/axios";
+import axios, { useDelete, useGet, usePost, usePatch, usePut } from "@/axios";
 import { type Ref } from "vue";
 import { useCoursesStore } from "@/stores/TeacherStore";
 import { type Course } from "@/types/index";
 import { StoreCache, ELLoading } from "./Decorators";
 import { type User } from "../types";
+import {
+  ElDialog,
+  ElCheckbox,
+  ElCheckboxGroup,
+  ElMessageBox,
+  ElMessage,
+} from "element-plus";
 
 const coursesStore = useCoursesStore();
 export class AdminService {
-  // 获取该老师所有的课程
-  @StoreCache(coursesStore.coursesS)
-  @ELLoading()
-  static async listCoursesService() {
-    console.log("你将要请求老师所有的课程数据");
-    const data = await useGet(`users/courses`);
-    return data as unknown as Ref<Course[]>;
-  }
+  //获取所有用户
   static listUsersService = async () => {
     const data = await useGet("admin/users");
     return data as unknown as Ref<User[]>;
   };
-
-  //这有问题
-  //   static changePasswordService = async (user: User) => {
-  //     console.log(user.account);
-  //     const account = user.account
-  //     await usePut("admin/users/${account}/password");
-  //   };
-  static changePasswordService = async (user: User) => {
-    console.log(user.account);
-    await usePatch("admin/user2", user);
-  };
-  //这有问题 原来是account唯一性冲突
-  static addUserService = async (user: User) => {
-    console.log("222---------");
+  //重置密码
+  static resetPasswordService = async (account: any) => {
+    // await usePut(`admin/${account}/password`, null);
     try {
-      const res = await usePost("admin/user", user);
-      console.log("111----------");
-      console.log(res);
+      const resp = await axios.put(`admin/users/${account}/password`, null);
+      if (resp.data.code < 300) {
+        console.log("重置密码成功！");
+        ElMessage.success("重置密码成功！");
+      }
+    } catch (error) {
+      console.error("重置密码失败:", error);
+      throw error;
+    }
+  };
+  //添加用户
+  static addUserService = async (user: User) => {
+    // console.log("222---------");
+    try {
+      const resp = await axios.post("admin/users", user);
+      // console.log("111----------");
+      if (resp.data.code < 300) {
+        console.log("用户添加成功！");
+        ElMessage.success("用户添加成功！");
+      }
     } catch (error) {
       console.error("添加用户失败:", error);
       throw error;
