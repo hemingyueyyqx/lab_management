@@ -48,12 +48,12 @@ const menulist: MenuItem[] = [
     index: "/teacher/currentappointment",
     icon: House,
   },
-  {
-    id: 7,
-    name: "查看公告",
-    index: "/teacher/looknews",
-    icon: House,
-  },
+  // {
+  //   id: 7,
+  //   name: "查看公告",
+  //   index: "/teacher/looknews",
+  //   icon: House,
+  // },
 ];
 </script>
 <template>

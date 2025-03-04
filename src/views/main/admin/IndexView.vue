@@ -12,6 +12,7 @@ import {
 } from "element-plus";
 import { useCalendarStore } from "@/stores/CalendarStore";
 import { AdminService } from "@/services/AdminService";
+import AdminHeader from "@/components/layout/Header.vue";
 
 const calendarStore = useCalendarStore();
 //课程信息数组
@@ -57,17 +58,17 @@ const selected = (data) => {
 //删除所选用户
 const del = () => {
   console.log("del:", idArr);
-  ElMessageBox.confirm(`确定要删除所选课程吗?`, "Warning", {
+  ElMessageBox.confirm(`确定要删除所选用户吗?`, "Warning", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning",
   })
     .then(async () => {
       console.log("删除多个用户");
-      //   const code = await TeacherService.deleteCourses(idArr);
-      //   if (code < 300) {
-      //     location.reload(); // 刷新页面
-      //   }
+      const code = await AdminService.deleteUserService(idArr);
+      if (code < 300) {
+        location.reload(); // 刷新页面
+      }
     })
     .catch(() => {});
 };
@@ -82,10 +83,10 @@ const deleteCourse = (row: any) => {
     .then(async () => {
       console.log("删除用户");
       console.log(row);
-      //   const code = await TeacherService.deleteCourse(row.id);
-      //   if (code < 300) {
-      //     location.reload(); // 刷新页面
-      //   }
+      const code = await AdminService.deleteUserService(row.id);
+      if (code < 300) {
+        location.reload(); // 刷新页面
+      }
     })
     .catch(() => {});
 };
@@ -131,71 +132,77 @@ const resetPassword = (index: any, row: any) => {
 
 <template>
   <div class="admin-container">
-    <!-- <h3>按钮</h3> -->
-    <el-button type="primary" @click="add">
-      <el-icon><Plus /></el-icon>
-      <span>添加用户</span>
-    </el-button>
-    <el-button type="danger" @click="del">
-      <el-icon><Delete /></el-icon>
-      <span>删除</span>
-    </el-button>
-    <el-table
-      :data="users"
-      :loading="loading"
-      @selection-change="selected"
-      :header-cell-style="{ textAlign: 'center' }"
-      :cell-style="{ textAlign: 'center' }"
-      style="margin: 3px 0"
-    >
-      <el-table-column type="selection" width=""></el-table-column>
-      <!-- 新增的自增编号列 -->
-      <el-table-column label="序号" width="">
-        <template #default="scope">
-          {{ scope.$index + 1 }}
-        </template>
-      </el-table-column>
-      <!-- <el-table-column prop="id" label="编号" width="80" /> -->
-      <el-table-column prop="name" label="姓名" width="" />
-      <el-table-column prop="account" label="账号" width="150" />
-      <el-table-column prop="telephone" label="联系方式" width="" />
-      <el-table-column prop="role" label="角色" width="">
-        <template #default="scope">
-          <!-- <span v-if="scope.row.role == ADMIN>超级管理员</span> -->
-          <span v-if="scope.row.role == TEACHER">老师</span>
-          <span v-if="scope.row.role == LABADMIN">实验室管理员</span>
-          <span v-if="scope.row.role == ADMIN">超级管理员</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作">
-        <template #default="scope">
-          <!-- 传入当前行的索引（scope.$index）和整行数据（scope.row） -->
-          <el-button
-            size="small"
-            type="primary"
-            @click="resetPassword(scope.$index, scope.row)"
-          >
-            <el-icon><RefreshRight /></el-icon>
-            <span>重置密码</span>
-          </el-button>
-          <el-button
-            type="danger"
-            size="small"
-            @click="deleteCourse(scope.row)"
-          >
-            <el-icon><Delete /></el-icon>
-            <span>删除</span>
-          </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <div class="pagination-wrapper">
-      <el-pagination
-        layout="prev, pager, next, jumper, total"
-        :page-size="5"
-        :total="50"
-      />
+    <div class="header">
+      <AdminHeader />
     </div>
+    <div class="main">
+      <el-button type="primary" @click="add">
+        <el-icon><Plus /></el-icon>
+        <span>添加用户</span>
+      </el-button>
+      <el-button type="danger" @click="del">
+        <el-icon><Delete /></el-icon>
+        <span>删除</span>
+      </el-button>
+      <el-table
+        :data="users"
+        :loading="loading"
+        @selection-change="selected"
+        :header-cell-style="{ textAlign: 'center' }"
+        :cell-style="{ textAlign: 'center' }"
+        style="margin: 3px 0"
+      >
+        <el-table-column type="selection" width=""></el-table-column>
+        <!-- 新增的自增编号列 -->
+        <el-table-column label="序号" width="">
+          <template #default="scope">
+            {{ scope.$index + 1 }}
+          </template>
+        </el-table-column>
+        <!-- <el-table-column prop="id" label="编号" width="80" /> -->
+        <el-table-column prop="name" label="姓名" width="" />
+        <el-table-column prop="account" label="账号" width="150" />
+        <el-table-column prop="telephone" label="联系方式" width="" />
+        <el-table-column prop="role" label="角色" width="">
+          <template #default="scope">
+            <!-- <span v-if="scope.row.role == ADMIN>超级管理员</span> -->
+            <span v-if="scope.row.role == TEACHER">老师</span>
+            <span v-if="scope.row.role == LABADMIN">实验室管理员</span>
+            <span v-if="scope.row.role == ADMIN">超级管理员</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作">
+          <template #default="scope">
+            <!-- 传入当前行的索引（scope.$index）和整行数据（scope.row） -->
+            <el-button
+              size="small"
+              type="primary"
+              @click="resetPassword(scope.$index, scope.row)"
+            >
+              <el-icon><RefreshRight /></el-icon>
+              <span>重置密码</span>
+            </el-button>
+            <el-button
+              type="danger"
+              size="small"
+              @click="deleteCourse(scope.row)"
+            >
+              <el-icon><Delete /></el-icon>
+              <span>删除</span>
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div class="pagination-wrapper">
+        <el-pagination
+          layout="prev, pager, next, jumper, total"
+          :page-size="5"
+          :total="50"
+        />
+      </div>
+    </div>
+    <!-- <h3>按钮</h3> -->
+
     <!-- 添加课程模态框 -->
     <el-dialog v-model="addUserOpen" title="添加用户" width="500">
       <el-form :model="form">
@@ -244,6 +251,13 @@ const resetPassword = (index: any, row: any) => {
   margin-top: 10px; /* 可根据需要调整顶部间距 */
 }
 .admin-container {
+  display: flex;
+  flex-direction: column;
+}
+.header {
+  margin-bottom: 10px;
+}
+.main {
   padding: 10px;
 }
 </style>
