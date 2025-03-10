@@ -22,7 +22,7 @@ export class CommonService {
     const token = resp.headers.token;
     const role = resp.headers.role;
     const { id, name } = us;
-    console.log("role" , role);
+    console.log("role", role);
     const message = resp.data.message;
     //console.log("响应信息", message);
     if (!us || !token || !role) {

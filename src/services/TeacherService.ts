@@ -177,7 +177,7 @@ export class TeacherService {
     }
   };
   //删除指定课程id,指定学期，指定周次的预约记录
-  static deleteAppointmentByCourseId = async (appointment:any) => {
+  static deleteAppointmentByCourseId = async (appointment: any) => {
     try {
       const semester = useCalendarStore().getSemester();
       appointment = { semester, ...appointment };

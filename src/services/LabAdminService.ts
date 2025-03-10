@@ -1,4 +1,10 @@
-import axios, { useDelete, useGet, usePost, usePatch, usePut } from "@/axios";
+import axios, {
+  useDelete,
+  useGet,
+  usePost,
+  usePatch,
+  usePut,
+} from "@/axios";
 import { type Ref } from "vue";
 import { useCoursesStore } from "@/stores/TeacherStore";
 import { type Course } from "@/types/index";

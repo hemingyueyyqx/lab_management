@@ -13,6 +13,8 @@ import {
 import { useCalendarStore } from "@/stores/CalendarStore";
 import { AdminService } from "@/services/AdminService";
 import AdminHeader from "@/components/layout/Header.vue";
+import { timeFormatConversion } from "@/utils/timeFormat";
+import { exportFile, importFile } from "@/utils/excel";
 
 const calendarStore = useCalendarStore();
 //课程信息数组
@@ -29,6 +31,44 @@ const editUserOpen = ref(false);
 const form = ref<User>({});
 //编辑课程表单
 const editForm = ref<User>({});
+// 表格字段配置
+const fieldConfig = ref([
+  {
+    label: "ID", // 标签
+    model: "id", // 字段名
+    is_export: false, // 是否导出该字段
+  },
+  {
+    label: "姓名", // 标签
+    model: "name", // 字段名
+    is_export: true, // 是否导出该字段
+  },
+  {
+    label: "账号", // 标签
+    model: "account", // 字段名
+    is_export: true, // 是否导出该字段
+  },
+  {
+    label: "联系方式", // 标签
+    model: "telephone", // 字段名
+    is_export: true, // 是否导出该字段
+  },
+  {
+    label: "角色", // 标签
+    model: "role", // 字段名
+    is_export: true, // 是否导出该字段
+  },
+  {
+    label: "创建时间", // 标签
+    model: "createTime", // 字段名
+    is_export: true, // 是否导出该字段
+  },
+  {
+    label: "更新时间", // 标签
+    model: "updateTime", // 字段名
+    is_export: true, // 是否导出该字段
+  },
+]);
 //1、获取所有用户信息
 async function fetchData() {
   try {
@@ -128,6 +168,132 @@ const resetPassword = (index: any, row: any) => {
     })
     .catch(() => {});
 };
+//导出excel
+const exportExcel = async () => {
+  ElMessage({
+    message: "开始导出数据，请稍候！",
+    type: "success",
+  });
+  // 导出数据查询参数
+  const printParams = {
+    size: 1000,
+    page: 1,
+  };
+  // 获取需要导出的字段配置
+  const export_fields = fieldConfig.value
+    .filter((obj) => obj["is_export"])
+    .map(({ label, model }) => ({ [model]: label }));
+
+  try {
+    // 从后端获取数据
+    const response = await AdminService.listUsersService();
+    console.log("response", response);
+
+    const export_data = response.map((obj) => {
+      const newObj = {};
+      export_fields.forEach((field) => {
+        const [key, value] = Object.entries(field)[0];
+        if (key === "createTime" || key === "updateTime") {
+          newObj[value] = timeFormatConversion(obj[key], "YYYY-MM-DD HH:mm:ss");
+        } else if (key === "role") {
+          if (obj[key] == "Sj08") {
+            newObj[value] = "超级管理员";
+          } else if (obj[key] == "Js09") {
+            newObj[value] = "老师";
+          } else {
+            newObj[value] = "实验室管理员";
+          }
+        } else {
+          newObj[value] = obj[key];
+        }
+      });
+      return newObj;
+    });
+    let filename = "示例用户";
+    exportFile(export_data, filename);
+  } catch (error) {
+    console.log(error);
+    ElMessage.error("获取列表数据失败！");
+  }
+};
+// 导入excel弹窗是否显示
+const uploadDialogVisible = ref(false);
+// 点击导入excel按钮事件
+const importExcel = () => {
+  uploadDialogVisible.value = true;
+};
+// 文件数据
+const uploadData = ref([]);
+// 文件上传事件
+const handleChange = (file) => {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const content = reader.result;
+    importFile(content)
+      .then((data) => {
+        console.log(data);
+        uploadData.value = data;
+      })
+      .catch((response) => {
+        //发生错误时执行的代码
+        console.log(response);
+        ElMessage.error("获取列表数据失败！");
+      });
+  };
+  reader.readAsBinaryString(file.raw);
+};
+// 点击导入excel提交数据事件
+// const submitUpload = () => {
+//   uploadDialogVisible.value = false;
+// };
+// 点击导入excel提交数据事件
+const submitUpload = async () => {
+  try {
+    for (const user of uploadData.value) {
+      // 将中文键转换为英文键
+      const convertedUser = convertKeys(user);
+
+      // 处理角色的英文值
+      if (convertedUser.role === "超级管理员") {
+        convertedUser.role = "Sj08";
+      } else if (convertedUser.role === "老师") {
+        convertedUser.role = "Js09";
+      } else if (convertedUser.role === "实验室管理员") {
+        convertedUser.role = "lM07";
+      }
+
+      // 调用后端的添加用户接口
+      await AdminService.addUserService(convertedUser);
+    }
+    uploadDialogVisible.value = false;
+    ElMessage.success("用户导入成功！");
+    // 刷新页面
+    location.reload();
+  } catch (error) {
+    console.error("用户导入失败:", error);
+    ElMessage.error(`用户导入失败:${error}`);
+  }
+};
+
+// 定义中文键到英文键的映射
+const keyMapping = {
+  创建时间: "createTime",
+  姓名: "name",
+  更新时间: "updateTime",
+  联系方式: "telephone",
+  角色: "role",
+  账号: "account",
+};
+
+// 转换中文键为英文键的函数
+const convertKeys = (obj: any) => {
+  const newObj: any = {};
+  for (const [key, value] of Object.entries(obj)) {
+    const newKey = keyMapping[key] || key;
+    newObj[newKey] = value;
+  }
+  return newObj;
+};
 </script>
 
 <template>
@@ -144,6 +310,9 @@ const resetPassword = (index: any, row: any) => {
         <el-icon><Delete /></el-icon>
         <span>删除</span>
       </el-button>
+      <el-button type="primary" @click="exportExcel">导出用户</el-button>
+      <el-button type="success" @click="importExcel">批量添加用户</el-button>
+
       <el-table
         :data="users"
         :loading="loading"
@@ -239,6 +408,44 @@ const resetPassword = (index: any, row: any) => {
           <el-button @click="addUserOpen = false">取消</el-button>
           <el-button type="primary" @click="submit"> 确定 </el-button>
         </div>
+      </template>
+    </el-dialog>
+    <el-dialog v-model="uploadDialogVisible" title="批量添加数据" width="40%">
+      <el-form label-width="120px">
+        <!-- <el-form-item label="模板下载：">
+        <el-button type="info" @click="downloadTemplate">
+          <el-icon>
+            <Download/>
+          </el-icon>
+          点击下载
+        </el-button>
+      </el-form-item> -->
+        <el-form-item label="文件上传：">
+          <el-upload
+            drag
+            accept=".xls,.xlsx"
+            :auto-upload="false"
+            :on-change="handleChange"
+          >
+            <el-icon class="el-icon--upload">
+              <upload-filled />
+            </el-icon>
+            <div class="el-upload__text">
+              将文件拖到此处，或<em>点击上传</em>
+            </div>
+            <template #tip>
+              <div class="el-upload__tip">
+                请上传.xls,.xlsx格式文件，文件最大为500kb
+              </div>
+            </template>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="uploadDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitUpload"> 导入 </el-button>
+        </span>
       </template>
     </el-dialog>
   </div>
