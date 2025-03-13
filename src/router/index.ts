@@ -9,7 +9,7 @@ import { CommonService } from "@/services/index";
 // router是路由器，routes是被它管理的路由，是数组
 
 const router = createRouter({
-  history: createWebHashHistory(), //路由器的工作模式
+  history: createWebHistory(), //路由器的工作模式
   routes: [
     {
       path: "/login",
@@ -86,8 +86,6 @@ const router = createRouter({
       path: "/:pathMatch(.*)*",
       redirect: "/login",
     },
-
-   
   ],
 });
 
