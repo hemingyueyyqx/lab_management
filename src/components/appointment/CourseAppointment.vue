@@ -311,7 +311,15 @@ const submitWeeks = async () => {
             await TeacherService.addAppointmentService(appointmentData);
           }
           // 提交成功后刷新页面
-          location.reload(); // 刷新页面
+          // location.reload(); // 刷新页面
+          // fetchData();
+          // 更新学时
+          await getHours(selectedCourse.value.id);
+
+          // 更新当前实验室课表
+          if (selectedLabId.value) {
+            await getAppointmentTable(selectedLabId.value);
+          }
         } else {
           console.error(
             "从 sessionStorage 获取的用户信息中缺少有效的 name 属性"

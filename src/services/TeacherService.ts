@@ -32,7 +32,7 @@ export class TeacherService {
   }
 
   //根据老师id获取该老师本学期的所有课程(课表)
-  @StoreCache(courseTableStore.coursesTable)
+  @StoreCache(courseTableStore.coursesTable, true)
   @ELLoading()
   static async listCoursesByTid() {
     const semester = useCalendarStore().getSemester();

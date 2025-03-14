@@ -65,7 +65,8 @@ const del = () => {
       console.log("删除多门课程");
       const code = await TeacherService.deleteCourses(idArr);
       if (code < 300) {
-        location.reload(); // 刷新页面
+        // location.reload(); // 刷新页面
+        fetchData();
       }
     })
     .catch(() => {});
@@ -83,7 +84,8 @@ const deleteCourse = (row: any) => {
       console.log(row);
       const code = await TeacherService.deleteCourse(row.id);
       if (code < 300) {
-        location.reload(); // 刷新页面
+        // location.reload(); // 刷新页面
+        fetchData();
       }
     })
     .catch(() => {});
@@ -117,7 +119,9 @@ const submit = async () => {
   try {
     await TeacherService.addCourse(form.value);
     addCourseOpen.value = false;
-    location.reload(); // 刷新页面
+    form.value = {};
+    // location.reload(); // 刷新页面
+    fetchData();
   } catch (error) {
     console.error("添加课程失败:", error);
   }
@@ -129,7 +133,8 @@ const editSubmit = async () => {
   await TeacherService.updateCourse(editForm.value);
   editCourseOpen.value = false;
   editForm.value = {};
-  location.reload(); // 刷新页面
+  fetchData();
+  // location.reload(); // 刷新页面
 };
 //编辑取消按钮
 const editCancel = () => {

@@ -72,7 +72,7 @@ const fieldConfig = ref([
 //1、获取所有用户信息
 async function fetchData() {
   try {
-    //loading.value = true;
+    loading.value = true;
     users = await AdminService.listUsersService();
     console.log("**********");
     console.log(users.value);
@@ -107,7 +107,8 @@ const del = () => {
       console.log("删除多个用户");
       const code = await AdminService.deleteUserService(idArr);
       if (code < 300) {
-        location.reload(); // 刷新页面
+        // location.reload(); // 刷新页面
+        fetchData();
       }
     })
     .catch(() => {});
@@ -125,7 +126,8 @@ const deleteCourse = (row: any) => {
       console.log(row);
       const code = await AdminService.deleteUserService(row.id);
       if (code < 300) {
-        location.reload(); // 刷新页面
+        // location.reload(); // 刷新页面
+        fetchData();
       }
     })
     .catch(() => {});
@@ -147,7 +149,8 @@ const submit = async () => {
   try {
     await AdminService.addUserService(form.value);
     addUserOpen.value = false;
-    location.reload(); // 刷新页面
+    // location.reload(); // 刷新页面
+    fetchData();
   } catch (error) {
     console.error("添加课程失败:", error);
   }
@@ -164,7 +167,8 @@ const resetPassword = (index: any, row: any) => {
       console.log("重置密码");
       console.log(row);
       await AdminService.resetPasswordService(row.account);
-      location.reload(); // 刷新页面
+      // location.reload(); // 刷新页面
+      fetchData();
     })
     .catch(() => {});
 };
@@ -209,7 +213,7 @@ const exportExcel = async () => {
       });
       return newObj;
     });
-    let filename = "示例用户";
+    let filename = "所有用户";
     exportFile(export_data, filename);
   } catch (error) {
     console.log(error);
@@ -268,7 +272,8 @@ const submitUpload = async () => {
     uploadDialogVisible.value = false;
     ElMessage.success("用户导入成功！");
     // 刷新页面
-    location.reload();
+    // location.reload();
+    fetchData();
   } catch (error) {
     console.error("用户导入失败:", error);
     ElMessage.error(`用户导入失败:${error}`);

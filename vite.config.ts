@@ -3,20 +3,23 @@ import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import viteCompression from "vite-plugin-compression";
+import { compression } from "vite-plugin-compression2";
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
-    viteCompression({
-      // 配置项
-      verbose: true, // 是否在控制台输出压缩结果
-      disable: false, // 是否禁用压缩
-      threshold: 10240, // 文件大小超过此值时进行压缩，单位为字节
-      algorithm: "gzip", // 压缩算法，可选 'gzip' 或 'brotli'
-      ext: ".gz", // 压缩后的文件扩展名
-    }),
+    compression(),
+    // viteCompression({
+    //   // 配置项
+    //   verbose: true, // 是否在控制台输出压缩结果
+    //   disable: false, // 是否禁用压缩
+    //   threshold: 10240, // 文件大小超过此值时进行压缩，单位为字节
+    //   algorithm: "gzip", // 压缩算法，可选 'gzip' 或 'brotli'
+    //   ext: ".gz", // 压缩后的文件扩展名
+    //   deleteOriginFile: true, // 压缩后是否删除压缩源文件
+    // }),
   ],
-  base: "./",
+  // base: "./",
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),

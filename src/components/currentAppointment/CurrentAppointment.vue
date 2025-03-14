@@ -41,7 +41,7 @@ const selectedWeeks = ref<number[]>([]);
 //1、获取指定老师的所有课程信息
 async function fetchData() {
   try {
-    //loading.value = true;
+    loading.value = true;
     const resp = await TeacherService.listCoursesByTid();
     console.log("**********", resp);
     console.log(resp.value);
@@ -142,7 +142,8 @@ const del = () => {
       console.log("删除多门课程全部预约记录");
       const code = await TeacherService.deleteAppointment(idArr);
       if (code < 300) {
-        location.reload(); // 刷新页面
+        // location.reload(); // 刷新页面
+        fetchData();
       }
     })
     .catch(() => {});
@@ -194,9 +195,10 @@ const confirmDelete = async () => {
 
     if (code < 300) {
       // 删除成功
-      ElMessage.success("删除成功");
+      // ElMessage.success("删除成功");
       deleteDialogVisible.value = false;
-      location.reload();
+      // location.reload();
+      fetchData();
     } else {
       // 删除失败
       throw new Error(`删除失败，状态码: ${code}`);
