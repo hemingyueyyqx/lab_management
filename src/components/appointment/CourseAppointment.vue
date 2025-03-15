@@ -83,7 +83,7 @@
       </thead>
       <tbody>
         <tr v-for="(section, index) in timetable" :key="index">
-          <td>{{ index * 2 + 1 }} {{ index * 2 + 2 }}节</td>
+          <td>第{{ index * 2 + 1 }}, {{ index * 2 + 2 }}节</td>
           <td v-for="(coursesInTd, dayIndex) in section" :key="dayIndex">
             <div v-if="coursesInTd && coursesInTd.length > 0" class="tdcourses">
               <div
@@ -126,7 +126,7 @@
   <el-dialog
     v-model="dialogVisible"
     title="请选择你要预约的周次"
-    @close="selectedWeeks = []"
+    @close="handleDialogClose"
   >
     <p>当前课程：{{ selectedCourse?.name }}</p>
     <p>当前星期：{{ currentDay }}</p>
@@ -162,7 +162,7 @@
 import { type Ref, ref, reactive, nextTick, onMounted } from "vue";
 import type { Course, Appointment, User } from "@/types/index";
 import { TeacherService } from "@/services/TeacherService";
-import { ElDialog, ElCheckbox, ElCheckboxGroup } from "element-plus";
+import { ElDialog, ElCheckbox, ElCheckboxGroup, ElMessage } from "element-plus";
 //数据
 //选中的周次合理
 const selectedValidWeek = ref(false);
@@ -209,6 +209,10 @@ const selectedLabName = ref("");
 //判断提交按钮是否有效
 const hasSelectedWeeks = ref(false);
 //方法
+const handleDialogClose = () => {
+  selectedWeeks.value = [];
+  appointmentWeeks.value = [];
+};
 //删除预约请求
 async function deleteAppointment(courseId: any) {
   try {
@@ -268,6 +272,25 @@ const handleWeekCheck = (val: number[]) => {
   // 更新选中状态
   selectedValidWeek.value = val.length >= validWeek;
 };
+//要实现所有请求都成功之后再给出提示信息，可以使用 Promise.all 方法。Promise.all 可以并行处理多个 Promise，并在所有 Promise 都成功解决后返回一个新的 Promise，该 Promise 会在所有输入的 Promise 都解决后解决，其结果是一个包含所有输入 Promise 结果的数组。如果其中任何一个 Promise 被拒绝，Promise.all 会立即拒绝并返回第一个被拒绝的 Promise 的原因。
+const addAppointments = async (appointmentData) => {
+  try {
+    // 创建一个包含所有请求 Promise 的数组
+    const promises = selectedWeeks.value.map((week) => {
+      const newAppointmentData = { ...appointmentData, week };
+      return TeacherService.addAppointmentService(newAppointmentData);
+    });
+
+    // 使用 Promise.all 并行处理所有请求
+    await Promise.all(promises);
+
+    // 所有请求都成功后给出提示信息
+    ElMessage.success("预约成功！");
+  } catch (error) {
+    // 若有任何一个请求失败，给出错误提示
+    alert("添加预约时出现错误：" + error.message);
+  }
+};
 //提交 5、添加预约请求
 const submitWeeks = async () => {
   // 这里可以添加逻辑将selectedWeeks.value发送到后端或者进行其他处理
@@ -306,10 +329,11 @@ const submitWeeks = async () => {
           };
 
           // 遍历选中的周次，逐个发送预约请求
-          for (const week of selectedWeeks.value) {
-            appointmentData.week = week;
-            await TeacherService.addAppointmentService(appointmentData);
-          }
+          // for (const week of selectedWeeks.value) {
+          //   appointmentData.week = week;
+          //   await TeacherService.addAppointmentService(appointmentData);
+          // }
+          addAppointments(appointmentData);
           // 提交成功后刷新页面
           // location.reload(); // 刷新页面
           // fetchData();

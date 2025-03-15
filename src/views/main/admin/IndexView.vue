@@ -147,10 +147,17 @@ const submit = async () => {
   console.log("form的值是");
   console.log("form:", form.value);
   try {
-    await AdminService.addUserService(form.value);
-    addUserOpen.value = false;
-    // location.reload(); // 刷新页面
-    fetchData();
+    const code = await AdminService.addUserService(form.value);
+    if (code < 300) {
+      addUserOpen.value = false;
+      // location.reload(); // 刷新页面
+      fetchData();
+      ElMessage.success("添加成功");
+    } else {
+      addUserOpen.value = false;
+
+      throw new Error(`添加失败，状态码: ${code}`);
+    }
   } catch (error) {
     console.error("添加课程失败:", error);
   }
@@ -279,7 +286,35 @@ const submitUpload = async () => {
     ElMessage.error(`用户导入失败:${error}`);
   }
 };
+const addUsers = async () => {
+  try {
+    // 创建一个包含所有请求 Promise 的数组
+    const promises = uploadData.value.map((user) => {
+      // 将中文键转换为英文键
+      const convertedUser = convertKeys(user);
 
+      // 处理角色的英文值
+      if (convertedUser.role === "超级管理员") {
+        convertedUser.role = "Sj08";
+      } else if (convertedUser.role === "老师") {
+        convertedUser.role = "Js09";
+      } else if (convertedUser.role === "实验室管理员") {
+        convertedUser.role = "lM07";
+      }
+
+      return AdminService.addUserService(convertedUser);
+    });
+
+    // 使用 Promise.all 并行处理所有请求
+    await Promise.all(promises);
+
+    // 所有请求都成功后给出提示信息
+    alert("用户添加成功！");
+  } catch (error) {
+    // 若有任何一个请求失败，给出错误提示
+    alert("添加用户时出现错误：" + error.message);
+  }
+};
 // 定义中文键到英文键的映射
 const keyMapping = {
   创建时间: "createTime",

@@ -47,8 +47,9 @@ export class AdminService {
       // console.log("111----------");
       if (resp.data.code < 300) {
         console.log("用户添加成功！");
-        ElMessage.success("用户添加成功！");
+        // ElMessage.success("用户添加成功！");
       }
+      return resp.data.code;
     } catch (error) {
       console.error("添加用户失败:", error);
       throw error;

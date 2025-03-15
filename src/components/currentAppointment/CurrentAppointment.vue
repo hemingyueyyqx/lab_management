@@ -133,11 +133,15 @@ const selected = (data) => {
 //删除所选课程
 const del = () => {
   console.log("del:", idArr);
-  ElMessageBox.confirm(`确定要删除所选课程的全部预约记录吗?`, "Warning", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning",
-  })
+  ElMessageBox.confirm(
+    `确定要删除所选课程的指定星期节次周次预约记录吗?`,
+    "Warning",
+    {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning",
+    }
+  )
     .then(async () => {
       console.log("删除多门课程全部预约记录");
       const code = await TeacherService.deleteAppointment(idArr);
@@ -267,7 +271,12 @@ const add = (type: Number) => {
     <!-- <el-table-column prop="id" label="编号" width="80" /> -->
     <el-table-column prop="course.name" label="课程名称" width="" />
     <el-table-column prop="appointment.dayofweek" label="星期" width="" />
-    <el-table-column prop="appointment.section" label="节次" width="" />
+    <el-table-column prop="appointment.section" label="节次" width="">
+      <template #default="scope">
+        第{{ 2 * scope.row.appointment.section - 1 }},
+        {{ 2 * scope.row.appointment.section }}节
+      </template>
+    </el-table-column>
     <el-table-column prop="appointment.week" label="周次" width="" />
     <el-table-column prop="appointment.labName" label="实验室" width="" />
     <!-- <el-table-column

@@ -86,9 +86,10 @@ export class TeacherService {
       const url = `teacher/appointment`;
       console.log("即将发起请求的URL:", url);
       const resp = await axios.post(url, appointment);
-      if (resp.data.code < 300) {
-        ElMessage.success("预约成功！");
-      }
+      // if (resp.data.code < 300) {
+      //   // ElMessage.success("预约成功！");
+      // }
+      return resp.data.code;
     } catch (error) {
       console.log("请求添加预约记录失败，错误信息:", error);
     }
