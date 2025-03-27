@@ -19,7 +19,7 @@ export default defineConfig({
     //   deleteOriginFile: true, // 压缩后是否删除压缩源文件
     // }),
   ],
-  base: "./",
+  // base: "./",
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
